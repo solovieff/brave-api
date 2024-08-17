@@ -120,3 +120,52 @@ class AsyncBrave(BraveAPIClient):
 
         # return response.json()
         return WebSearchApiResponse.model_validate(response.json())
+
+async def image(
+            self,
+            q: str,
+            country: Optional[str] = None,
+            search_lang: Optional[str] = BRAVE_SETTINGS.LANGUAGE,
+            count: Optional[int] = 20,
+            safesearch: Optional[str] = "off",
+            spellcheck: Optional[bool] = True,
+    ) -> dict:
+        """
+        Perform an image search using the Brave Search API.
+
+        Parameters:
+        -----------
+        q: str
+            The search query (required).
+        country: str
+            The 2-character country code (default: 'US').
+        search_lang: str
+            The search language preference.
+        count: int
+            The number of results to return (default: 20, max: 20).
+        safesearch: str
+            Filter for adult content ('off', 'moderate', 'strict').
+        spellcheck: bool
+            Spellcheck the query (default: True).
+        """
+
+        # Parameter validation and query parameter construction
+        if not q or len(q) > 400 or len(q.split()) > 50:
+            raise ValueError("Invalid query parameter 'q'")
+
+        params = {
+            "q": q,
+            "country": country,
+            "search_lang": search_lang,
+            "count": min(count, 20),
+            "safesearch": safesearch,
+            "spellcheck": spellcheck,
+        }
+
+        # Filter out None values
+        params = {k: v for k, v in params.items() if v is not None}
+
+        # API request and response handling
+        response = await self._get(params=params)
+
+        return response.json()
